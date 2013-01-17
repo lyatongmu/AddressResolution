@@ -63,7 +63,8 @@ public class Resolution {
         
         try {
             URL historyDataURL = getResourceFileUrl("history.data");
-            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(historyDataURL.getFile())));
+            FileInputStream fileInputStream = new FileInputStream(historyDataURL.getFile());
+            BufferedReader br = new BufferedReader(new InputStreamReader(fileInputStream, "UTF-8"));
             String data = null;
             while((data = br.readLine()) != null) {
                 String[] infos = data.split("\\|");
