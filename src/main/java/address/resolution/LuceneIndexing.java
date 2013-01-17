@@ -96,7 +96,6 @@ public class LuceneIndexing {
             IndexSearcher searcher = new IndexSearcher(INDEX_FILE_PATH);
             Query query = new QueryParser(ADDRESS_EN_FILED, analyzer).parse(addressEN);
             
-            
             if (searcher != null) {
                 Hits hits = searcher.search(query);
                 if (hits.length() > 0) {

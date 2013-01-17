@@ -44,7 +44,7 @@ public class GoogleTranslateor {
                   buffer.append(line);
                 }
                 String responseContent = buffer.toString();
-//                log.debug("google translate response content: " + responseContent);
+                log.debug("google translate response content: " + responseContent);
                 
                 int beginIndex = responseContent.indexOf("\"") + 1;
                 int endIndex   = responseContent.indexOf("\"", beginIndex);
