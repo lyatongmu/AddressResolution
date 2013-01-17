@@ -61,9 +61,9 @@ public class LuceneIndexing {
             	
                 indexWriter.addDocument(indexDoc);
                 
-                ThreadPool.count ++;
-                if ((ThreadPool.count > 0 && ThreadPool.count % 10 == 0)) {
-                    log.info("已解析完【" + ThreadPool.count + "】个地址。");
+                ThreadPool.addCount();
+                if ((ThreadPool.COUNT > 0 && ThreadPool.COUNT % 10 == 0)) {
+                    log.info("已解析完【" + ThreadPool.COUNT + "】个地址。");
                     indexWriter.optimize();
                 }
                 
@@ -88,6 +88,9 @@ public class LuceneIndexing {
     	if(addressEN == null) {
             return null;
         }
+    	
+    	// 消除会导致lucene报错的特殊字符
+    	addressEN = QueryParser.escape(addressEN);
     	
     	String result = null;
         long startTime = System.currentTimeMillis();

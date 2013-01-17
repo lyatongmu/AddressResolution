@@ -34,7 +34,7 @@ public class Resolution {
     // TODO 暂不能用，在同一时刻，lucene索引中只允许有一个进程对其进行加入文档，删除文档，更新索引等操作。
     public static void resolveHistoryDataII(List<Address> addressList) {
         ThreadPool threadpool = ThreadPool.getInstance();
-        ThreadPool.count = 0;
+        ThreadPool.COUNT = 0;
         
         int size = addressList.size();
         if( size > 0 ) {

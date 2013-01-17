@@ -26,7 +26,16 @@ public class ThreadPool {
         return threadpool;
     }
     
-    static int count = 0; // 使用线程池时，用于多线程环境下的计数
+    static int COUNT = 0; // 使用线程池时，用于多线程环境下的计数
+    static int FAULT_COUNT = 0;
+    
+    public static synchronized void addCount() {
+        COUNT ++;
+    }
+    
+    public static synchronized void addFaultCount() {
+        FAULT_COUNT ++;
+    }
 
     private final ThreadPoolWorker[] workers;
     private final List<Task> workQueue;
