@@ -26,22 +26,29 @@ public class LuceneIndexing {
 	static String EXPRESS_DEPT_FILED = "expressDept";
 	
 	static String INDEX_FILE_PATH = "D:/temp/address/index";
-
-    public static void createIndex(List<Address> addressList) {
+	
+	public static void createIndex(List<Address> addressList) {
+	    createIndex(addressList, true);
+	}
+	
+    public static void createIndex(List<Address> addressList, boolean create) {
         File indexDir = new File(INDEX_FILE_PATH); 
         if( !indexDir.exists() ) {
             indexDir.mkdirs();
         }
         
         IndexWriter indexWriter = null;
-        int count = 0;
         try {
-            indexWriter = new IndexWriter(indexDir, analyzer, true);
+            indexWriter = new IndexWriter(indexDir, analyzer, create);
             indexWriter.setMaxBufferedDocs(10); // 设置强制索引document对象后flush
             
             for ( Address address : addressList ) {
             	if(address.addressEN == null) {
             		address.addressEN = GoogleTranslateor.translate(address.addressGBK);
+            	}
+            	
+            	if(address.addressEN == null) {
+            	    continue;
             	}
             	
             	Document indexDoc = new Document();
@@ -54,10 +61,9 @@ public class LuceneIndexing {
             	
                 indexWriter.addDocument(indexDoc);
                 
-                // 每100个更新一次
-                count ++;
-                if ((count > 0 && count % 100 == 0)) {
-                    count = 0;
+                ThreadPool.count ++;
+                if ((ThreadPool.count > 0 && ThreadPool.count % 10 == 0)) {
+                    log.info("已解析完【" + ThreadPool.count + "】个地址。");
                     indexWriter.optimize();
                 }
                 
@@ -77,8 +83,11 @@ public class LuceneIndexing {
         }
     }
     
-    public static String query(String addressGBK) {
+    public static String query(String addressGBK, boolean createIndex) {
     	String addressEN = GoogleTranslateor.translate(addressGBK);
+    	if(addressEN == null) {
+            return null;
+        }
     	
     	String result = null;
         long startTime = System.currentTimeMillis();
@@ -91,10 +100,10 @@ public class LuceneIndexing {
             if (searcher != null) {
                 Hits hits = searcher.search(query);
                 if (hits.length() > 0) {
-                    log.info("找到:" + hits.length() + " 个结果!");
+                    log.debug("找到:" + hits.length() + " 个结果:");
                     for (int i = 0; i < hits.length(); i++) {
                         Document hitDoc = hits.doc(i);
-                        log.info("内容：" + hitDoc.get(EXPRESS_DEPT_FILED));
+                        log.debug("  " + hitDoc.get(EXPRESS_DEPT_FILED));
                     }
                     result = hits.doc(0).get(EXPRESS_DEPT_FILED);
                 }
@@ -106,14 +115,15 @@ public class LuceneIndexing {
         log.debug("耗时【" + (System.currentTimeMillis() - startTime) + "】ms!");
         
         // 为新地址建立索引
-        List<Address> addressList = new ArrayList<Address>();
-        Address address = new Address(addressGBK, result);
-        address.addressEN = addressEN;
-        addressList.add(address);
-        
-        createIndex(addressList);
+        if(createIndex) {
+            List<Address> addressList = new ArrayList<Address>();
+            Address address = new Address(addressGBK, result);
+            address.addressEN = addressEN;
+            addressList.add(address);
+            
+            createIndex(addressList, false);
+        }
         
         return result;
     }
-
 }

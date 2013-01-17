@@ -12,24 +12,63 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.apache.log4j.helpers.Loader;
 
+/**
+ * 解析历史数据，建立索引
+ */
 public class Resolution {
     
     static Logger log = Logger.getLogger(Resolution.class);
     
-    public void resolveHistoryData() {
+    public static void resolveHistoryData() {
+        List<Address> addressList = getHistotyData();
+        resolveHistoryData(addressList);
+    }
+    
+    public static void resolveHistoryData(List<Address> addressList) {
+        if( addressList.size() > 0 ) {
+            LuceneIndexing.createIndex(addressList);
+        }
+    }
+    
+    // 历史数据庞大的话，使用线程池以改善性能
+    // TODO 暂不能用，在同一时刻，lucene索引中只允许有一个进程对其进行加入文档，删除文档，更新索引等操作。
+    public static void resolveHistoryDataII(List<Address> addressList) {
+        ThreadPool threadpool = ThreadPool.getInstance();
+        ThreadPool.count = 0;
         
+        int size = addressList.size();
+        if( size > 0 ) {
+            int i = 0, step = 100;
+            for( ; i < size; i += step ) {
+                final List<Address> tempList;
+                if(i + step < size) {
+                    tempList = addressList.subList(i, i + step);
+                } 
+                else {
+                    tempList = addressList.subList(i, size);
+                }
+                
+                final boolean create = (i == 0);
+                threadpool.excute(new Task() {
+                    public void excute() {
+                        LuceneIndexing.createIndex(tempList, create);
+                    }
+                });
+            }
+        }
+    }
+    
+    public static List<Address> getHistotyData() {
         List<Address> addressList = new ArrayList<Address>();
         
-        URL historyDataURL = getResourceFileUrl("history.data");
-        
-        BufferedReader br = null;
         try {
-            br = new BufferedReader(new InputStreamReader(new FileInputStream(historyDataURL.getFile())));
+            URL historyDataURL = getResourceFileUrl("history.data");
+            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(historyDataURL.getFile())));
             String data = null;
             while((data = br.readLine()) != null) {
-                String[] infos = data.split("|");
+                String[] infos = data.split("\\|");
                 if(infos.length == 2) {
-                    Address address = new Address(infos[0], infos[1]);
+                    Address address = new Address(infos[0].trim(), infos[1].trim());
                     addressList.add(address);
                 }
             }
@@ -39,10 +78,7 @@ public class Resolution {
         } catch (IOException e) {
             log.error("读取文件内容时IO异常", e);
         }
-        
-        if( addressList.size() > 0 ) {
-            LuceneIndexing.createIndex(addressList);
-        }
+        return addressList;
     }
     
     static URL getResourceFileUrl(String file) {
@@ -52,5 +88,4 @@ public class Resolution {
         }
         return url;
     }
-    
 }
