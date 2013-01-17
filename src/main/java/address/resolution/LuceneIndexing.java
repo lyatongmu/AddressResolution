@@ -100,12 +100,15 @@ public class LuceneIndexing {
             if (searcher != null) {
                 Hits hits = searcher.search(query);
                 if (hits.length() > 0) {
-                    log.debug("找到:" + hits.length() + " 个结果:");
+                    log.debug("地址【" + addressGBK + "】匹配到【" + hits.length() + "】个结果:");
                     for (int i = 0; i < hits.length(); i++) {
                         Document hitDoc = hits.doc(i);
-                        log.debug("  " + hitDoc.get(EXPRESS_DEPT_FILED));
+                        log.debug("              " + hitDoc.get(EXPRESS_DEPT_FILED));
                     }
                     result = hits.doc(0).get(EXPRESS_DEPT_FILED);
+                }
+                else {
+                    log.debug("没有找到结果。");
                 }
             }
         } catch (Exception e) {
@@ -115,7 +118,7 @@ public class LuceneIndexing {
         log.debug("耗时【" + (System.currentTimeMillis() - startTime) + "】ms!");
         
         // 为新地址建立索引
-        if(createIndex) {
+        if(result != null && createIndex) {
             List<Address> addressList = new ArrayList<Address>();
             Address address = new Address(addressGBK, result);
             address.addressEN = addressEN;

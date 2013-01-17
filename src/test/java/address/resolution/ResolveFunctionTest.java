@@ -10,7 +10,7 @@ import junit.framework.TestCase;
  */
 public class ResolveFunctionTest extends TestCase {
     
-    String address1 = "浙江省杭州市天目上路176号（西湖数源软件园）18号楼";
+    String address1 = "浙江省杭州市天目山路176号（西湖数源软件园）18号楼";
     String expressDept1 = "数源营业部";
     
     public void testAddressResolution() {
@@ -19,7 +19,7 @@ public class ResolveFunctionTest extends TestCase {
         
         LuceneIndexing.createIndex(addressList);
         
-        LuceneIndexing.query("浙江省杭州市天目上路176号（西湖数源软件）20号楼", true);
+        LuceneIndexing.query("浙江省杭州市天目山路176号（西湖数源软件）20号楼", true);
     }
 
 }
