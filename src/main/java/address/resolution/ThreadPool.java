@@ -19,9 +19,11 @@ public class ThreadPool {
     
     private static ThreadPool threadpool;
     
+    static int THREAD_INIT_NUM = 10;
+    
     public static ThreadPool getInstance() {
-        if(  threadpool == null ) {
-            threadpool = new ThreadPool(10);
+        if( threadpool == null ) {
+            threadpool = new ThreadPool(THREAD_INIT_NUM); 
         }
         return threadpool;
     }

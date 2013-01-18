@@ -1,6 +1,7 @@
 package address.resolution;
 
 import java.io.BufferedReader;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -36,7 +37,8 @@ public class GoogleTranslateor {
             int statusCode = method.getStatusCode();
 
             if (statusCode == HttpStatus.SC_OK) {
-                BufferedReader in = new BufferedReader(new InputStreamReader(method.getResponseBodyAsStream()));
+                InputStream responseBodyAsStream = method.getResponseBodyAsStream();
+                BufferedReader in = new BufferedReader(new InputStreamReader(responseBodyAsStream, "UTF-8"));
                 
                 StringBuffer buffer = new StringBuffer();
                 String line = "";
