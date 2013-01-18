@@ -43,26 +43,24 @@ public class Resolution {
      * @param addressList
      */
     public static void resolveHistoryDataII(List<Address> addressList) {
-        
         if( addressList.isEmpty() ) return;
         
-        Map<Integer, List<Address>> areaMap = new HashMap<Integer, List<Address>>();
+        Map<String, List<Address>> areaMap = new HashMap<String, List<Address>>();
         for(Address address : addressList) {
             if(address.addressCN == null || address.addressCN.length() < 4) {
                 continue;
             }
             
             String area = address.addressCN.substring(0, 3);
-            int areaHashCode = area.hashCode();
-            List<Address> areaList = areaMap.get(areaHashCode);
+            List<Address> areaList = areaMap.get(area);
             if (areaList == null) {
-                areaMap.put(areaHashCode, areaList = new ArrayList<Address>());
+                areaMap.put(area, areaList = new ArrayList<Address>());
             }
             areaList.add(address);
         }
         
-        for(Entry<Integer, List<Address>> entry : areaMap.entrySet()) {
-            int areaHashCode = entry.getKey();
+        for(Entry<String, List<Address>> entry : areaMap.entrySet()) {
+            int areaHashCode = entry.getKey().hashCode();
             final List<Address> areaList = entry.getValue();
             final String indexPath = LuceneIndexing.INDEX_FILE_PATH + "/" + areaHashCode;
             
