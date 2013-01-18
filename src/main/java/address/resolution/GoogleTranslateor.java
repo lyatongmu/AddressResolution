@@ -36,18 +36,18 @@ public class GoogleTranslateor {
             client.executeMethod(method);
             int statusCode = method.getStatusCode();
 
+            InputStream responseBodyAsStream = method.getResponseBodyAsStream();
+            BufferedReader in = new BufferedReader(new InputStreamReader(responseBodyAsStream, "UTF-8"));
+            
+            StringBuffer buffer = new StringBuffer();
+            String line = "";
+            while ((line = in.readLine()) != null){
+              buffer.append(line);
+            }
+            String responseContent = buffer.toString();
+            log.debug("google translate response content: " + responseContent);
+            
             if (statusCode == HttpStatus.SC_OK) {
-                InputStream responseBodyAsStream = method.getResponseBodyAsStream();
-                BufferedReader in = new BufferedReader(new InputStreamReader(responseBodyAsStream, "UTF-8"));
-                
-                StringBuffer buffer = new StringBuffer();
-                String line = "";
-                while ((line = in.readLine()) != null){
-                  buffer.append(line);
-                }
-                String responseContent = buffer.toString();
-                log.debug("google translate response content: " + responseContent);
-                
                 int beginIndex = responseContent.indexOf("\"") + 1;
                 int endIndex   = responseContent.indexOf("\"", beginIndex);
                 if( endIndex > beginIndex ) {
