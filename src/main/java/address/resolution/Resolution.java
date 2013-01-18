@@ -30,8 +30,13 @@ public class Resolution {
         }
     }
     
-    // 历史数据庞大的话，使用线程池以改善性能
-    // TODO 暂不能用，在同一时刻，lucene索引中只允许有一个进程对其进行加入文档，删除文档，更新索引等操作。
+    /**
+     * 历史数据庞大的话，使用线程池并发处理以改善性能
+     * TODO 暂不能用，在同一时刻，lucene索引中只允许有一个进程对其进行加入文档，删除文档，更新索引等操作。
+     *      可考虑对历史数据按省市进行分类，分开建索引，则可并发进行。
+     * 
+     * @param addressList
+     */
     public static void resolveHistoryDataII(List<Address> addressList) {
         ThreadPool threadpool = ThreadPool.getInstance();
         ThreadPool.COUNT = 0;

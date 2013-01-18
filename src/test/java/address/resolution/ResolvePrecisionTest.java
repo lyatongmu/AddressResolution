@@ -24,9 +24,9 @@ public class ResolvePrecisionTest extends TestCase {
         List<Address> addressList = Resolution.getHistotyData();
         if(addressList.isEmpty()) return;
         
-        Resolution.resolveHistoryData(addressList);
+//        Resolution.resolveHistoryData(addressList);
         
-        List<Address> testList = addressList.subList(0, addressList.size() / 10); // 取十分之一的历史地址做下试验
+        List<Address> testList = addressList.subList(0, addressList.size() / 1); // 取十分之一的历史地址做下试验
         
         ThreadPool threadpool = ThreadPool.getInstance();
         ThreadPool.COUNT = 0;
@@ -45,7 +45,7 @@ public class ResolvePrecisionTest extends TestCase {
                     } 
                     else {
                         ThreadPool.addFaultCount();
-                        log.info("该地址映射不成功 ：" + address.addressGBK + "【历史：" + address.expressDept + ", 匹配：" + result + "】");
+                        log.info("该地址映射不成功 ：" + address.addressGBK + "【历史：" + address.expressDept + ",  匹配：" + result + "】");
                     }
                 }
             });
