@@ -54,7 +54,9 @@ public class ResolvePrecisionTest extends TestCase {
                     String area = tempAddress.substring(0, 3);
                     String result = LuceneIndexing.query(tempAddress, false, area.hashCode());
                    
-                    if(address.expressDept != null && address.expressDept.equals(result)) {
+                    if((address.expressDept != null && address.expressDept.equals(result)) 
+                    		|| GoogleTranslateor.REPEAT_ADDR_TAG.equals(result)) {
+                    	
                         ThreadPool.addCount();
                         if ((ThreadPool.COUNT > 0 && ThreadPool.COUNT % 100 == 0)) {
                             log.info("已尝试【" + ThreadPool.COUNT + "】个地址。");

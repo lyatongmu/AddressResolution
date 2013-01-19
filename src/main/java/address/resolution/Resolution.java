@@ -2,8 +2,6 @@ package address.resolution;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
@@ -90,11 +88,9 @@ public class Resolution {
                 }
             }
             br.close();
-        } catch (FileNotFoundException e) {
-            log.error("找不到指定的文件", e);
-        } catch (IOException e) {
-            log.error("读取文件内容时IO异常", e);
-        }
+        } catch (Exception e) {
+            throw new RuntimeException("读取历史数据出错", e);
+        } 
         return addressList;
     }
     

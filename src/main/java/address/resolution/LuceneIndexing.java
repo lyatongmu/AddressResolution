@@ -55,7 +55,7 @@ public class LuceneIndexing {
             		address.addressEN = GoogleTranslateor.translate(address.addressCN);
             	}
             	
-            	if(address.addressEN == null) {
+            	if(address.addressEN == null || address.addressEN.equals(GoogleTranslateor.REPEAT_ADDR_TAG)) {
             	    continue;
             	}
             	
@@ -91,19 +91,22 @@ public class LuceneIndexing {
         }
     }
     
-    public static String query(String addressGBK, boolean createIndex) {
-        return query(addressGBK, createIndex, INDEX_FILE_PATH);
+    public static String query(String addressCN, boolean createIndex) {
+        return query(addressCN, createIndex, INDEX_FILE_PATH);
     }
     
-    public static String query(String addressGBK, boolean createIndex, int areaHashCode) {
+    public static String query(String addressCN, boolean createIndex, int areaHashCode) {
         String indexPath = INDEX_FILE_PATH + "/" + areaHashCode;
-        return query(addressGBK, createIndex, indexPath);
+        return query(addressCN, createIndex, indexPath);
     }
     
-    public static String query(String addressGBK, boolean createIndex, String indexPath) {
-    	String addressEN = GoogleTranslateor.translate(addressGBK);
+    public static String query(String addressCN, boolean createIndex, String indexPath) {
+    	String addressEN = GoogleTranslateor.translate(addressCN);
     	if(addressEN == null) {
             return null;
+        }
+    	if(addressEN.equals(GoogleTranslateor.REPEAT_ADDR_TAG)) {
+            return GoogleTranslateor.REPEAT_ADDR_TAG;
         }
     	
     	// 消除会导致lucene报错的特殊字符
@@ -119,7 +122,7 @@ public class LuceneIndexing {
             if (searcher != null) {
                 Hits hits = searcher.search(query);
                 if (hits.length() > 0) {
-                    log.debug("地址【" + addressGBK + "】匹配到【" + hits.length() + "】个结果:");
+                    log.debug("地址【" + addressCN + "】匹配到【" + hits.length() + "】个结果:");
                     for (int i = 0; i < hits.length(); i++) {
                         Document hitDoc = hits.doc(i);
                         log.debug("              " + hitDoc.get(EXPRESS_DEPT_FILED));
@@ -139,7 +142,7 @@ public class LuceneIndexing {
         // 为新地址建立索引
         if(result != null && createIndex) {
             List<Address> addressList = new ArrayList<Address>();
-            Address address = new Address(addressGBK, result);
+            Address address = new Address(addressCN, result);
             address.addressEN = addressEN;
             addressList.add(address);
             
