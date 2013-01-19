@@ -19,7 +19,7 @@ public class ResolvePrecisionTest extends TestCase {
         LuceneIndexing.log.setLevel(Level.INFO);
         GoogleTranslateor.log.setLevel(Level.INFO);
         
-        ThreadPool.THREAD_INIT_NUM = 50;
+        ThreadPool.THREAD_INIT_NUM = 12;
         Resolution.HISTORY_DATA = "sh_history.data";
         LuceneIndexing.INDEX_FILE_PATH = "D:/temp/address/sh_index";
     }

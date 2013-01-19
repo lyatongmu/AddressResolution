@@ -51,17 +51,18 @@ public class LuceneIndexing {
             indexWriter.setMaxBufferedDocs(10); // 设置强制索引document对象后flush
             
             for ( Address address : addressList ) {
-            	if(address.addressEN == null) {
-            		address.addressEN = GoogleTranslateor.translate(address.addressCN);
-            	}
-            	
-            	if(address.addressEN == null || address.addressEN.equals(GoogleTranslateor.REPEAT_ADDR_TAG)) {
-            	    continue;
+            	String addressEN = address.addressEN;
+				if(addressEN == null) {
+            		addressEN = GoogleTranslateor.translate(address.addressCN, true);
+            		if(addressEN == null || addressEN.equals(GoogleTranslateor.REPEAT_ADDR_TAG)) {
+            			ThreadPool.addCount();
+            			continue;
+                	}
             	}
             	
             	Document indexDoc = new Document();
             	
-            	Field addressENFiled = new Field(ADDRESS_EN_FILED, address.addressEN, Field.Store.NO, Field.Index.TOKENIZED);
+            	Field addressENFiled = new Field(ADDRESS_EN_FILED, addressEN, Field.Store.NO, Field.Index.TOKENIZED);
 				indexDoc.add(addressENFiled);
 				
 				Field expressDeptField = new Field(EXPRESS_DEPT_FILED, address.expressDept, Field.Store.YES, Field.Index.NO);
@@ -79,7 +80,7 @@ public class LuceneIndexing {
                 
             }
         } catch (Exception e) {
-            log.error("创建索引异常", e);
+            log.error("创建或更新索引时异常", e);
         } finally {
             try {
                 if(indexWriter != null) {
@@ -101,7 +102,7 @@ public class LuceneIndexing {
     }
     
     public static String query(String addressCN, boolean createIndex, String indexPath) {
-    	String addressEN = GoogleTranslateor.translate(addressCN);
+    	String addressEN = GoogleTranslateor.translate(addressCN, createIndex); // 如果地址要建索引，则记录其翻译结果
     	if(addressEN == null) {
             return null;
         }

@@ -1,6 +1,7 @@
 package address.resolution;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -66,7 +67,9 @@ public class Resolution {
             ThreadPool.COUNT = 0;
             threadpool.excute(new Task() {
                 public void excute() {
-                    LuceneIndexing.createIndex(areaList, true, indexPath);
+                	// 如果索引文件不存在，则新建；否则Append到存在的索引文件后面
+                	boolean create = !(new File(indexPath).exists()); 
+                    LuceneIndexing.createIndex(areaList, create, indexPath);
                 }
             });
         }
@@ -100,5 +103,9 @@ public class Resolution {
             url = ClassLoader.class.getResource(file);
         }
         return url;
+    }
+    
+    public static void main(String[] args) {
+    	System.out.print("上城区	复兴南苑18幢1单元501室".trim().hashCode());
     }
 }

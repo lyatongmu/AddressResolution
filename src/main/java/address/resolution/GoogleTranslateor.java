@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -27,7 +28,7 @@ public class GoogleTranslateor {
     static String RESULT_FILE_PATH = "D:/temp/address/en/result.data";
     static String RESULT_KEY_FILE_PATH = "D:/temp/address/en/result.key";
     
-    static Set<String> keySet = new HashSet<String>();
+    static Set<String> keySet = Collections.synchronizedSet(new HashSet<String>());
     static String REPEAT_ADDR_TAG = "exsits";
     
     static {
@@ -50,10 +51,10 @@ public class GoogleTranslateor {
     	}
     }
  
-	public static String translate(String addressCN) {
-		Integer addrCode = addressCN.hashCode();
-		if(keySet.contains(addrCode.toString())) {
-			return REPEAT_ADDR_TAG;
+	public static String translate(String addressCN, boolean record) {
+		String addrCode = String.valueOf(addressCN.hashCode());
+		if(keySet.contains(addrCode)) {
+			return REPEAT_ADDR_TAG; // 对于重复的地址不再多次翻译
 		}
 		
 	    String urlEncodedAddress;
@@ -86,8 +87,17 @@ public class GoogleTranslateor {
             log.debug("google translate response content: " + responseContent);
             
             if (statusCode == HttpStatus.SC_OK) {
-				output2File( addrCode + " ||| " + responseContent, RESULT_FILE_PATH);
-            	output2File( addrCode, RESULT_KEY_FILE_PATH );
+            	if( record ) {
+            		int areaHash = addressCN.substring(0, 3).hashCode();
+    				output2File( addrCode + " -.- " + responseContent, RESULT_FILE_PATH + "." + areaHash);
+                	output2File( addrCode, RESULT_KEY_FILE_PATH );
+                	keySet.add( addrCode );
+            	}
+            	
+            	// 定时休息以下，以免流量异常被Google拉入黑名单
+            	if( keySet.size() > 0 && keySet.size() % 10000 == 0) {
+            		Thread.sleep(1000 * 30);
+            	}
             	
                 int beginIndex = responseContent.indexOf("\"") + 1;
                 int endIndex   = responseContent.indexOf("\"", beginIndex);
@@ -100,13 +110,12 @@ public class GoogleTranslateor {
             else {
                 log.error("请求连接失败");
             }
+            return null;
         } catch(Exception e) {
             throw new RuntimeException("调用Google翻译时异常", e);
         } finally {
             method.releaseConnection();
         }
-        
-        return null;
 	}
 
 	private static void output2File(Object content, String filePath) {
