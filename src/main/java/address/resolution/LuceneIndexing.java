@@ -2,7 +2,6 @@ package address.resolution;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -28,33 +27,27 @@ public class LuceneIndexing {
 	static String INDEX_FILE_PATH = "D:/temp/address/index";
 	
 	public static void createIndex(List<Address> addressList) {
-	    createIndex(addressList, true);
+	    createIndex(addressList, INDEX_FILE_PATH);
 	}
 	
-	public static void createIndex(List<Address> addressList, boolean create) {
-        createIndex(addressList, create, INDEX_FILE_PATH);
-	}
-	
-	public static void createIndex(List<Address> addressList, String path) {
-	    createIndex(addressList, true, INDEX_FILE_PATH);
-	}
-	
-    public static void createIndex(List<Address> addressList, boolean create, String path) {
+    public static void createIndex(List<Address> addressList, String path) {
         File indexDir = new File(path); 
-        if( !indexDir.exists() ) {
+        boolean create = !indexDir.exists(); // 如果索引文件不存在，则新建；否则Append到存在的索引文件后面
+        if( create ) {
             indexDir.mkdirs();
         }
         
         IndexWriter indexWriter = null;
         try {
-            indexWriter = new IndexWriter(indexDir, analyzer, create); // create : 新建索引还是增量添加
+        	// create : 新建索引还是增量添加
+            indexWriter = new IndexWriter(indexDir, analyzer, create); 
             indexWriter.setMaxBufferedDocs(10); // 设置强制索引document对象后flush
             
             for ( Address address : addressList ) {
             	String addressEN = address.addressEN;
 				if(addressEN == null) {
-            		addressEN = GoogleTranslateor.translate(address.addressCN, true);
-            		if(addressEN == null || addressEN.equals(GoogleTranslateor.REPEAT_ADDR_TAG)) {
+            		addressEN = GoogleTranslator.translate(address.addressCN, true);
+            		if(addressEN == null || addressEN.equals(GoogleTranslator.REPEAT_ADDR_TAG)) {
             			ThreadPool.addCount();
             			continue;
                 	}
@@ -87,27 +80,23 @@ public class LuceneIndexing {
                     indexWriter.close();
                 }
             } catch (IOException e) {
-            	log.error("关闭索引文件错误！", e);
+            	log.error("关闭索引indexWriter时错误！", e);
             }
         }
     }
     
-    public static String query(String addressCN, boolean createIndex) {
-        return query(addressCN, createIndex, INDEX_FILE_PATH);
+    public static String query(Address address) {
+        return query(address, INDEX_FILE_PATH);
     }
     
-    public static String query(String addressCN, boolean createIndex, int areaHashCode) {
-        String indexPath = INDEX_FILE_PATH + "/" + areaHashCode;
-        return query(addressCN, createIndex, indexPath);
-    }
-    
-    public static String query(String addressCN, boolean createIndex, String indexPath) {
-    	String addressEN = GoogleTranslateor.translate(addressCN, createIndex); // 如果地址要建索引，则记录其翻译结果
-    	if(addressEN == null) {
+    public static String query(Address address, String indexPath) {
+    	String addressCN = address.addressCN;
+    	String addressEN = address.addressEN;
+    	if(addressEN == null) { 
             return null;
         }
-    	if(addressEN.equals(GoogleTranslateor.REPEAT_ADDR_TAG)) {
-            return GoogleTranslateor.REPEAT_ADDR_TAG;
+    	if(addressEN.equals(GoogleTranslator.REPEAT_ADDR_TAG)) {
+            return GoogleTranslator.REPEAT_ADDR_TAG;
         }
     	
     	// 消除会导致lucene报错的特殊字符
@@ -115,9 +104,10 @@ public class LuceneIndexing {
     	
     	String result = null;
         long startTime = System.currentTimeMillis();
-    	
+        
+        IndexSearcher searcher = null;
         try {
-            IndexSearcher searcher = new IndexSearcher(indexPath);
+            searcher = new IndexSearcher(indexPath);
             Query query = new QueryParser(ADDRESS_EN_FILED, analyzer).parse(addressEN);
             
             if (searcher != null) {
@@ -136,19 +126,17 @@ public class LuceneIndexing {
             }
         } catch (Exception e) {
             log.error("检索异常", e);
+        } finally {
+            try {
+                if(searcher != null) {
+                	searcher.close();
+                }
+            } catch (Exception e) {
+            	log.error("关闭索引searcher错误！", e);
+            }
         }
         
         log.debug("耗时【" + (System.currentTimeMillis() - startTime) + "】ms!");
-        
-        // 为新地址建立索引
-        if(result != null && createIndex) {
-            List<Address> addressList = new ArrayList<Address>();
-            Address address = new Address(addressCN, result);
-            address.addressEN = addressEN;
-            addressList.add(address);
-            
-            createIndex(addressList, false, indexPath);
-        }
         
         return result;
     }

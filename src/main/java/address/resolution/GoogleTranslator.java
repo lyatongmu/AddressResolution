@@ -21,9 +21,9 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.log4j.Logger;
 
-public class GoogleTranslateor {
+public class GoogleTranslator {
     
-    static Logger log = Logger.getLogger(GoogleTranslateor.class);
+    static Logger log = Logger.getLogger(GoogleTranslator.class);
     
     static String RESULT_FILE_PATH = "D:/temp/address/en/result.data";
     static String RESULT_KEY_FILE_PATH = "D:/temp/address/en/result.key";
@@ -52,6 +52,8 @@ public class GoogleTranslateor {
     }
  
 	public static String translate(String addressCN, boolean record) {
+		if( addressCN == null) return null;
+		
 		String addrCode = String.valueOf(addressCN.hashCode());
 		if(keySet.contains(addrCode)) {
 			return REPEAT_ADDR_TAG; // 对于重复的地址不再多次翻译

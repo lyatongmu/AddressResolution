@@ -12,14 +12,28 @@ import junit.framework.TestCase;
 public class ResolveFunctionTest extends TestCase {
     
     public void setUp() {
-    	File resultKeyFile = new File("D:/temp/address/en/result.key");
-    	if( resultKeyFile.exists() ) {
-    		resultKeyFile.delete();
-    	} 
+    	deleteDir(new File("D:/temp/address/index"));
+		deleteDir(new File("D:/temp/address/en"));
     	
-    	GoogleTranslateor.RESULT_FILE_PATH = "D:/temp/address/en/test.data";
+    	GoogleTranslator.RESULT_FILE_PATH = "D:/temp/address/en/test.data";
     }
     
+    public void tearDown() {
+		deleteDir(new File("D:/temp/address/index"));
+		deleteDir(new File("D:/temp/address/en"));
+    }
+    
+    public static void deleteDir(File dir) {
+		if (dir.exists()) {
+			for ( String fileName : dir.list() ) {
+				new File(dir.getPath() + "/" + fileName).delete();
+			}
+			if (dir.list().length == 0) {
+				dir.delete();
+			}
+		}
+	}
+
     public void testAddressResolution() {
     	String address1 = "浙江省杭州市天目山路176号（西湖数源软件园）18号楼";
         String expressDept1 = "数源营业部";
@@ -29,7 +43,12 @@ public class ResolveFunctionTest extends TestCase {
         
         LuceneIndexing.createIndex(addressList);
         
-        LuceneIndexing.query("浙江省杭州市天目山路176号（西湖数源软件）20号楼", true);
+        String testAddress = "浙江省杭州市天目山路176号（西湖数源软件）20号楼";
+        Address temp = new Address(testAddress, null);
+        String addressEN = GoogleTranslator.translate(testAddress, true);
+        
+        temp.addressEN = addressEN;
+        LuceneIndexing.query(temp);
     }
 
 }

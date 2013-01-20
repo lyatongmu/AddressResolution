@@ -1,7 +1,6 @@
 package address.resolution;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -44,7 +43,25 @@ public class Resolution {
     public static void resolveHistoryDataII(List<Address> addressList) {
         if( addressList.isEmpty() ) return;
         
-        Map<String, List<Address>> areaMap = new HashMap<String, List<Address>>();
+        Map<String, List<Address>> areaMap = sortAddressList(addressList);
+        
+        ThreadPool threadpool = ThreadPool.getInstance();
+        ThreadPool.COUNT = 0;
+        for(Entry<String, List<Address>> entry : areaMap.entrySet()) {
+            int areaHashCode = entry.getKey().hashCode();
+            final List<Address> areaList = entry.getValue();
+            final String indexPath = LuceneIndexing.INDEX_FILE_PATH + "/" + areaHashCode;
+            
+            threadpool.excute(new Task() {
+                public void excute() {
+                    LuceneIndexing.createIndex(areaList, indexPath);
+                }
+            });
+        }
+    }
+
+	static Map<String, List<Address>> sortAddressList(List<Address> addressList) {
+		Map<String, List<Address>> areaMap = new HashMap<String, List<Address>>();
         for(Address address : addressList) {
             if(address.addressCN == null || address.addressCN.length() < 4) {
                 continue;
@@ -57,23 +74,8 @@ public class Resolution {
             }
             areaList.add(address);
         }
-        
-        for(Entry<String, List<Address>> entry : areaMap.entrySet()) {
-            int areaHashCode = entry.getKey().hashCode();
-            final List<Address> areaList = entry.getValue();
-            final String indexPath = LuceneIndexing.INDEX_FILE_PATH + "/" + areaHashCode;
-            
-            ThreadPool threadpool = ThreadPool.getInstance();
-            ThreadPool.COUNT = 0;
-            threadpool.excute(new Task() {
-                public void excute() {
-                	// 如果索引文件不存在，则新建；否则Append到存在的索引文件后面
-                	boolean create = !(new File(indexPath).exists()); 
-                    LuceneIndexing.createIndex(areaList, create, indexPath);
-                }
-            });
-        }
-    }
+		return areaMap;
+	}
     
     public static List<Address> getHistotyData() {
         List<Address> addressList = new ArrayList<Address>();
@@ -104,8 +106,5 @@ public class Resolution {
         }
         return url;
     }
-    
-    public static void main(String[] args) {
-    	System.out.print("上城区	复兴南苑18幢1单元501室".trim().hashCode());
-    }
+
 }

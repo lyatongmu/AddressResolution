@@ -30,6 +30,7 @@ public class ThreadPool {
     
     static int COUNT = 0; // 使用线程池时，用于多线程环境下的计数
     static int FAULT_COUNT = 0;
+    static int SUCCESS_COUNT = 0;
     
     public static synchronized void addCount() {
         COUNT ++;
@@ -37,6 +38,10 @@ public class ThreadPool {
     
     public static synchronized void addFaultCount() {
         FAULT_COUNT ++;
+    }
+    
+    public static synchronized void addSuccessCount() {
+    	SUCCESS_COUNT ++;
     }
 
     private final ThreadPoolWorker[] workers;
