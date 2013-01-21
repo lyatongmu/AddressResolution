@@ -25,14 +25,17 @@ public class GoogleTranslator {
     
     static Logger log = Logger.getLogger(GoogleTranslator.class);
     
-    static String RESULT_FILE_PATH = "D:/temp/address/en/result.data";
-    static String RESULT_KEY_FILE_PATH = "D:/temp/address/en/result.key";
+    static String RESULT_FILE_DIR = "D:/temp/address/en";
+    
+    static String RESULT_FILE_PATH() { return RESULT_FILE_DIR + "/result.data"; }
+    static String RESULT_KEY_FILE_PATH() { return RESULT_FILE_DIR + "/result.key"; }
+    static String ADDR_MAPPED_PATH() { return RESULT_FILE_DIR + "/mapped.data"; }
     
     static Set<String> keySet = Collections.synchronizedSet(new HashSet<String>());
     static String REPEAT_ADDR_TAG = "exsits";
     
-    static {
-    	File resultKeyFile = new File(RESULT_KEY_FILE_PATH);
+    static void init() {
+    	File resultKeyFile = new File(RESULT_KEY_FILE_PATH());
     	if( !resultKeyFile.exists() ) {
     		resultKeyFile.getParentFile().mkdirs();
     	} 
@@ -49,6 +52,10 @@ public class GoogleTranslator {
                 log.error("读取rusult key文件到内存时出错。", e);
             } 
     	}
+    }
+    
+    static void clear() {
+        keySet.clear();
     }
  
 	public static String translate(String addressCN, boolean record) {
@@ -91,8 +98,8 @@ public class GoogleTranslator {
             if (statusCode == HttpStatus.SC_OK) {
             	if( record ) {
             		int areaHash = addressCN.substring(0, 3).hashCode();
-    				output2File( addrCode + " -.- " + responseContent, RESULT_FILE_PATH + "." + areaHash);
-                	output2File( addrCode, RESULT_KEY_FILE_PATH );
+    				output2File( addrCode + " -.- " + responseContent, RESULT_FILE_PATH() + "." + areaHash);
+                	output2File( addrCode, RESULT_KEY_FILE_PATH() );
                 	keySet.add( addrCode );
             	}
             	
@@ -120,7 +127,7 @@ public class GoogleTranslator {
         }
 	}
 
-	private static void output2File(Object content, String filePath) {
+    static synchronized void output2File(Object content, String filePath) {
 		BufferedWriter bw = null;
 		try {
 			OutputStream outputStream = new FileOutputStream(filePath, true);

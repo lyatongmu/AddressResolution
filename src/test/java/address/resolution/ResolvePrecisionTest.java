@@ -21,10 +21,6 @@ public class ResolvePrecisionTest extends TestCase {
     public void setUp() {
         LuceneIndexing.log.setLevel(Level.INFO);
         GoogleTranslator.log.setLevel(Level.INFO);
-        
-//        ThreadPool.THREAD_INIT_NUM = 12;
-//        Resolution.HISTORY_DATA = "sh_history.data";
-//        LuceneIndexing.INDEX_FILE_PATH = "D:/temp/address/sh_index";
     }
  
     public void testResolvePrecision() {
@@ -43,11 +39,11 @@ public class ResolvePrecisionTest extends TestCase {
             }
         }
         
-        List<Address> testList = addressList.subList(index + 1, addressList.size()); // 取 1%的历史地址做下试验
-        _testQuery(testList);
+        List<Address> testList = addressList.subList(index, addressList.size()); // 取 10%的历史地址做下试验
+        _testQuery(testList, true, true);
     }
 
-	static void _testQuery(List<Address> testList) {
+	static void _testQuery(List<Address> testList, final boolean record, final boolean createIndex) {
 		Map<String, List<Address>> areaMap = Resolution.sortAddressList(testList);
         
         ThreadPool threadpool = ThreadPool.getInstance();
@@ -61,7 +57,7 @@ public class ResolvePrecisionTest extends TestCase {
                     for(final Address address : areaList) {
                     	// 在area对应的索引目录下检索
                     	String indexPath = LuceneIndexing.INDEX_FILE_PATH + "/" + areaHashCode;
-                    	address.addressEN = GoogleTranslator.translate(address.addressCN, true);
+                    	address.addressEN = GoogleTranslator.translate(address.addressCN, record);
                         String result = LuceneIndexing.query(address, indexPath);
                         
                         boolean matchSuccess = address.expressDept != null && address.expressDept.equals(result);
@@ -75,7 +71,9 @@ public class ResolvePrecisionTest extends TestCase {
                             
                             if( matchSuccess ) { // 为成功匹配的新地址建立索引
                             	ThreadPool.addSuccessCount();
-                                LuceneIndexing.createIndex(Arrays.asList(address), indexPath);
+                            	if (createIndex) {
+                            		LuceneIndexing.createIndex(Arrays.asList(address), indexPath);
+                            	}
                             }
                         } 
                         else {

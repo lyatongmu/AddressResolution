@@ -12,21 +12,26 @@ import junit.framework.TestCase;
 public class ResolveFunctionTest extends TestCase {
     
     public void setUp() {
+    	GoogleTranslator.RESULT_FILE_DIR = "D:/temp/address/en/test";
     	deleteDir(new File("D:/temp/address/index"));
-		deleteDir(new File("D:/temp/address/en"));
-    	
-    	GoogleTranslator.RESULT_FILE_PATH = "D:/temp/address/en/test.data";
+        deleteDir(new File(GoogleTranslator.RESULT_FILE_DIR));
     }
     
     public void tearDown() {
 		deleteDir(new File("D:/temp/address/index"));
-		deleteDir(new File("D:/temp/address/en"));
+		deleteDir(new File(GoogleTranslator.RESULT_FILE_DIR));
     }
     
     public static void deleteDir(File dir) {
 		if (dir.exists()) {
 			for ( String fileName : dir.list() ) {
-				new File(dir.getPath() + "/" + fileName).delete();
+			    File file =  new File(dir.getPath() + "/" + fileName);
+			    if( file.isDirectory() ) {
+			        deleteDir(file);
+			    } 
+			    else {
+			        file.delete();
+			    }
 			}
 			if (dir.list().length == 0) {
 				dir.delete();

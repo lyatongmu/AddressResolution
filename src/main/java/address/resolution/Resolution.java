@@ -76,12 +76,16 @@ public class Resolution {
         }
 		return areaMap;
 	}
+	
+	public static List<Address> getHistotyData() {
+	    return getHistotyData(HISTORY_DATA);
+	}
     
-    public static List<Address> getHistotyData() {
+    public static List<Address> getHistotyData(String fileName) {
         List<Address> addressList = new ArrayList<Address>();
         
         try {
-            URL historyDataURL = getResourceFileUrl(HISTORY_DATA);
+            URL historyDataURL = getResourceFileUrl(fileName);
             FileInputStream fileInputStream = new FileInputStream(historyDataURL.getFile());
             BufferedReader br = new BufferedReader(new InputStreamReader(fileInputStream, "UTF-8"));
             String data = null;
@@ -105,6 +109,26 @@ public class Resolution {
             url = ClassLoader.class.getResource(file);
         }
         return url;
+    }
+    
+    public static List<Address> getMappedData(String filePath) {
+        List<Address> addressList = new ArrayList<Address>();
+        
+        try {
+            FileInputStream fileInputStream = new FileInputStream(filePath);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fileInputStream, "UTF-8"));
+            String data = null;
+            while((data = br.readLine()) != null) {
+                String[] infos = data.split("\\|");
+                if(infos.length == 3) {
+                    Address address = new Address(infos[0].trim(), infos[1].trim(), infos[2].trim());
+                    addressList.add(address);
+                }
+            }
+            br.close();
+        } catch (Exception e) {
+        } 
+        return addressList;
     }
 
 }
