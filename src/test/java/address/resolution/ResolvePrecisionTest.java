@@ -58,7 +58,7 @@ public class ResolvePrecisionTest extends TestCase {
                     	// 在area对应的索引目录下检索
                     	String indexPath = LuceneIndexing.INDEX_FILE_PATH + "/" + areaHashCode;
                     	address.addressEN = GoogleTranslator.translate(address.addressCN, record);
-                        String result = LuceneIndexing.query(address, indexPath);
+                        String result = LuceneIndexing.query(address, indexPath, 1);
                         
                         boolean matchSuccess = address.expressDept != null && address.expressDept.equals(result);
 						if(matchSuccess 

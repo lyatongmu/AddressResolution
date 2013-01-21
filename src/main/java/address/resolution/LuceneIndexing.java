@@ -2,7 +2,9 @@ package address.resolution;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
@@ -86,10 +88,10 @@ public class LuceneIndexing {
     }
     
     public static String query(Address address) {
-        return query(address, INDEX_FILE_PATH);
+        return query(address, INDEX_FILE_PATH, 1);
     }
     
-    public static String query(Address address, String indexPath) {
+    public static String query(Address address, String indexPath, int resultNum) {
     	String addressCN = address.addressCN;
     	String addressEN = address.addressEN;
     	if(addressEN == null) { 
@@ -114,11 +116,22 @@ public class LuceneIndexing {
                 Hits hits = searcher.search(query);
                 if (hits.length() > 0) {
                     log.debug("地址【" + addressCN + "】匹配到【" + hits.length() + "】个结果:");
+                    
+                    Set<String> results = new LinkedHashSet<String>();
                     for (int i = 0; i < hits.length(); i++) {
-                        Document hitDoc = hits.doc(i);
-                        log.debug("              " + hitDoc.get(EXPRESS_DEPT_FILED));
+                        String dept = hits.doc(i).get(EXPRESS_DEPT_FILED).trim();
+                        
+                        if( results.size() >= resultNum) break ; // 只取匹配到的前【resultNum】个地址
+                        
+                        if( i == 0 ) {
+                            result = dept;
+                        }
+                        else if( !results.contains(dept) ) {
+                            result = result + "," + dept;
+                        }
+                        results.add(result);
                     }
-                    result = hits.doc(0).get(EXPRESS_DEPT_FILED);
+                    log.debug("排列靠前的结果有: " + result);
                 }
                 else {
                     log.debug("没有找到结果。");
