@@ -22,13 +22,15 @@ public class ExtractChineseWords {
     
     static Logger log = Logger.getLogger(ExtractChineseWords.class);
     
-    public static void extract(String dataDir) {
-        File[] dataFiles = new File(dataDir).listFiles(new FilenameFilter() {
-            public boolean accept(File dir, String name) {
-                return name.indexOf("result.data.") >= 0;
-            }
-            
-        });
+    public static void extract(String addressFile) {
+        File parentDir = new File(addressFile).getParentFile();
+        File[] dataFiles = listTranslatedDataFiles(parentDir);
+        
+        // 如果没有已经翻译的数据，则翻译地址
+        if(dataFiles == null || dataFiles.length == 0) {
+            GoogleTranslator.translateAddrsInFile(addressFile);
+            dataFiles = listTranslatedDataFiles(parentDir);
+        }
         
         ThreadPool.COUNT = 0;
         final Pattern p = Pattern.compile("[\\u4e00-\\u9fa5]");
@@ -47,8 +49,21 @@ public class ExtractChineseWords {
                             String[] ss = data.split(",");
                             for(String word : ss) {
                                 // 空的、全英文的、一个字的、太长的不要
+                                if( word == null || word.getBytes().length == word.length()) {
+                                    continue;
+                                }
+                                
                                 word = word.trim().replaceAll(" ", "");
-                                if( word == null || word.getBytes().length == word.length() || word.length() <= 1 || word.length() > 10) {
+                                word = word.replaceAll("[0-9]*室", "");  // 房间号不要
+                                word = word.replaceAll("[0-9]*单元", ""); 
+                                word = word.replaceAll("[0-9]*幢", ""); 
+                                word = word.replaceAll("[0-9]*号", ""); 
+                                word = word.replaceAll("路[0-9]*号", ""); 
+                                word = word.replaceAll("[0-9]*弄", ""); 
+                                word = word.replaceAll("[0-9]*楼", "");
+                                word = word.replaceAll("[0-9]*号楼", "");
+                                word = word.replaceAll("[0-9]*层", "");
+                                if( word.length() <= 1 || word.length() >= 10) {
                                     continue;
                                 }
                                 
@@ -93,8 +108,18 @@ public class ExtractChineseWords {
         
         log.info("输出结果到文件。");        
         for (Map.Entry<String, Integer> entry : sordedWords.entrySet()) {  
-            GoogleTranslator.output2File(entry.getKey() + ", " + entry.getValue(), dataDir + "/words.data");
+            GoogleTranslator.output2File(entry.getKey() + ", " + entry.getValue(), parentDir.getPath() + "/words.data");
         }  
+    }
+
+    private static File[] listTranslatedDataFiles(File parentDir) {
+        File[] dataFiles = parentDir.listFiles(new FilenameFilter() {
+            public boolean accept(File dir, String name) {
+                return name.indexOf("result.data.") >= 0;
+            }
+            
+        });
+        return dataFiles;
     }
     
     public static Map<String, Integer> sortMapByValue(Map<String, Integer> oriMap) {  
@@ -103,7 +128,7 @@ public class ExtractChineseWords {
         List<Map.Entry<String, Integer>> entryList = new ArrayList<Map.Entry<String, Integer>>(oriMap.entrySet());  
         Collections.sort(entryList, new Comparator<Map.Entry<String, Integer>>() {  
                     public int compare(Entry<String, Integer> entry1, Entry<String, Integer> entry2) {  
-                        return entry1.getValue() - entry2.getValue();  
+                        return entry2.getValue() - entry1.getValue();  
                     }  
                 });  
         
@@ -113,4 +138,9 @@ public class ExtractChineseWords {
             
         return sortedMap;  
     }  
+    
+    public static void main(String[] args) {
+        System.out.println("江干区\t凯旋新村".replaceAll("\t", " "));
+    }
 }
+

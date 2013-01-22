@@ -13,11 +13,7 @@ public class ExtractChineseWordsTest extends TestCase {
     }
     
     public void testExtractChineseWords() {
-        
-        // 翻译地址
-        GoogleTranslator.translateAddrsInFile("D:/temp/address/sh/sh_address.data");
-        
-        // 抽取中文词
-        ExtractChineseWords.extract(GoogleTranslator.RESULT_FILE_DIR);
+        // 翻译地址 并 抽取中文词, 输出文件为 words.data
+        ExtractChineseWords.extract("D:/temp/address/hz/address.data");
     }
 }

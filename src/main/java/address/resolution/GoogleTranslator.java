@@ -164,7 +164,7 @@ public class GoogleTranslator {
                     GoogleTranslator.translate(address.addressCN, true);
                     
                     ThreadPool.addCount();
-                    if ((ThreadPool.COUNT > 0 && ThreadPool.COUNT % 1000 == 0)) {
+                    if ((ThreadPool.COUNT > 0 && ThreadPool.COUNT % 100 == 0)) {
                         log.info("已翻译【" + ThreadPool.COUNT + "】个地址。");
                     }
                 }
