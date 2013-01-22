@@ -25,8 +25,6 @@ public class ResolvePrecision4SHTest extends TestCase {
         
         ThreadPool.THREAD_INIT_NUM = 12;
         LuceneIndexing.INDEX_FILE_PATH = "D:/temp/address/sh_index";
-        
-        GoogleTranslator.init();
     }
  
     public void testResolvePrecision() {
@@ -35,6 +33,8 @@ public class ResolvePrecision4SHTest extends TestCase {
             List<Address> historyList = Resolution.getHistotyData("sh_history.data");
             
             GoogleTranslator.RESULT_FILE_DIR = "D:/temp/address/sh_en/";
+            GoogleTranslator.init();
+            
             Resolution.resolveHistoryDataII(historyList);
             
             // 等待多线程完成

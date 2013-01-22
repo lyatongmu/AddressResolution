@@ -14,11 +14,13 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 public class GoogleTranslator {
@@ -146,4 +148,35 @@ public class GoogleTranslator {
 			}
 		}
 	}
+    
+    public static void translateAddrsInFile(String addressDataFilePath) {
+        File addressDataFile = new File(addressDataFilePath);
+        
+        GoogleTranslator.RESULT_FILE_DIR = addressDataFile.getParent();
+        GoogleTranslator.init();
+        GoogleTranslator.log.setLevel(Level.INFO);
+        
+        List<Address> addressList = Resolution.getAddressList(addressDataFile.getPath());
+        ThreadPool.COUNT = 0;
+        for(final Address address : addressList) {
+            ThreadPool.getInstance().excute(new Task() {
+                public void excute() {
+                    GoogleTranslator.translate(address.addressCN, true);
+                    
+                    ThreadPool.addCount();
+                    if ((ThreadPool.COUNT > 0 && ThreadPool.COUNT % 1000 == 0)) {
+                        log.info("已翻译【" + ThreadPool.COUNT + "】个地址。");
+                    }
+                }
+            });
+        }
+        
+        // 等待多线程完成
+        while(ThreadPool.COUNT < addressList.size()) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+            }
+        }
+    }
 }

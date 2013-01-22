@@ -60,6 +60,14 @@ public class Resolution {
         }
     }
 
+	/**
+	 * 按地址区域对地址进行分类
+	 * 
+	 * TODO 暂时是以地址前三个字符作为区域， 比如：西湖区 天目山路176号（西湖数源软件园）18号楼 
+	 * 
+	 * @param addressList
+	 * @return
+	 */
 	static Map<String, List<Address>> sortAddressList(List<Address> addressList) {
 		Map<String, List<Address>> areaMap = new HashMap<String, List<Address>>();
         for(Address address : addressList) {
@@ -101,6 +109,23 @@ public class Resolution {
             throw new RuntimeException("读取历史数据出错", e);
         } 
         return addressList;
+    }
+    
+    public static List<Address> getAddressList(String filePath) {
+        List<Address> addressCNList = new ArrayList<Address>();
+        
+        try {
+            FileInputStream fileInputStream = new FileInputStream(filePath);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fileInputStream, "UTF-8"));
+            String data = null;
+            while((data = br.readLine()) != null) {
+                addressCNList.add(new Address(data, null));
+            }
+            br.close();
+        } catch (Exception e) {
+            throw new RuntimeException("读取历史数据出错", e);
+        } 
+        return addressCNList;
     }
     
     static URL getResourceFileUrl(String file) {
