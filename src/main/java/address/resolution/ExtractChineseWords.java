@@ -22,6 +22,11 @@ public class ExtractChineseWords {
     
     static Logger log = Logger.getLogger(ExtractChineseWords.class);
     
+    /**
+     * 翻译地址 并 抽取中文词, 输出文件为 words.data
+     * 
+     * @param addressFile
+     */
     public static void extract(String addressFile) {
         File parentDir = new File(addressFile).getParentFile();
         File[] dataFiles = listTranslatedDataFiles(parentDir);
@@ -53,8 +58,9 @@ public class ExtractChineseWords {
                                     continue;
                                 }
                                 
+                                // 过滤掉一些信息，比如几号几栋几单元几室几层等
                                 word = word.trim().replaceAll(" ", "");
-                                word = word.replaceAll("[0-9]*室", "");  // 房间号不要
+                                word = word.replaceAll("[0-9]*室", ""); 
                                 word = word.replaceAll("[0-9]*单元", ""); 
                                 word = word.replaceAll("[0-9]*幢", ""); 
                                 word = word.replaceAll("[0-9]*号", ""); 
